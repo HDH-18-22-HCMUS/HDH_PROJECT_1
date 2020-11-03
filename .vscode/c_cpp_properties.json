@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/nachos"
+                "${workspaceFolder}/nachos",
+                "${workspaceFolder}/nachos/nachos-3.4/c++example"
             ],
             "defines": [
                 "_DEBUG",
