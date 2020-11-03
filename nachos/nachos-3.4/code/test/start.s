@@ -147,7 +147,14 @@ PrintChar:
 	j	$31
 	.end PrintChar
 
-
+//test SC sub
+	.globl Sub
+	.ent Sub
+Sub:
+	addiu $2,$0,SC_Sub
+	syscall
+	j $31
+	.end Sub 
 
 
 /* dummy function to keep gcc happy */

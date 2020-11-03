@@ -35,6 +35,8 @@
 #define SC_PrintChar   14
 #define SC_ReadString  15
 #define SC_PrintString 16
+//test Sc
+#define SC_Sub 43
 
 
 #ifndef IN_ASM
@@ -142,6 +144,8 @@ void PrintChar(char character);
 /* Prototype: Read - Print string */
 void ReadString(char buffet[], int length);
 void PrintString(char buffet[]);
+
+int Sub (int a, int b); 
 
 #endif /* IN_ASM */
 
