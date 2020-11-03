@@ -25,6 +25,13 @@
 #include "system.h"
 #include "syscall.h"
 
+
+// To not show error
+#include "synchcons.h"
+SynchConsole gSynchConsole;
+
+#include "machine.h"
+Machine* machine;
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -41,7 +48,7 @@
 //
 //	The result of the system call, if any, must be put back into r2. 
 //
-// And don't forget to increment the pc before returning. (Or else you'll
+// And don't forget to incremenSt the pc before returning. (Or else you'll
 // loop making the same system call forever!
 //
 //	"which" is the kind of exception.  The list of possible exceptions 
@@ -53,11 +60,42 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+    switch (which)
+    {
+        case NoException:
+            return;
+        case SyscallException:
+            switch (type)
+            {
+            case SC_Halt:
+                DEBUG('a', "Shutdown, initiated by user program.\n");
+   	            interrupt->Halt();
+                break;
+            
+
+
+
+
+            case SC_ReadChar:
+                char* ch = new char;
+                int numB = gSynchConsole.Read(ch,1);
+                machine->WriteRegister(2,ch[0]);
+                interrupt->Halt();
+                break;
+
+            
+            case SC_PrintChar:
+                char ch = machine->ReadRegister(4);
+                gSynchConsole.Write(ch,1);
+                machine->WriteRegister(2,0);
+                interrupt->Halt();
+                break;    
+
+            default:
+                printf("Unexpected user mode exception %d %d\n", which, type);
+                interrupt->Halt();
+                break;
+            }
+
     }
 }

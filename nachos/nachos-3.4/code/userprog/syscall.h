@@ -132,16 +132,16 @@ void Fork(void (*func)());
 void Yield();	
 
 /* Prototype: Read - Print int number */
-int ReadInt()
-void PrintInt(int number)
+int ReadInt();
+void PrintInt(int number);
 
 /* Prototype: Read - Print character */
-char ReadInt()
-void PrintInt(char character)
+char ReadChar();
+void PrintChar(char character);
 
 /* Prototype: Read - Print string */
-void ReadString(char[] buffet, int length)
-void PrintString(char[] buffet)
+void ReadString(char buffet[], int length);
+void PrintString(char buffet[]);
 
 #endif /* IN_ASM */
 
