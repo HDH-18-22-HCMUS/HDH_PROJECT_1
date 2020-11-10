@@ -30,9 +30,16 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
-#ifdef USER_PROGRAM
+
+#define USER_PROGRAM 1
+#ifdef USER_PROGRAM 
+#include "synchcons.h"
 #include "machine.h"
+
+extern SynchConsole* gSynchConsole;
 extern Machine* machine;	// user program memory and registers
+
+
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
