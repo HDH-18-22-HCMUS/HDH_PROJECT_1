@@ -147,6 +147,39 @@ PrintChar:
 	j	$31
 	.end PrintChar
 
+	.globl PrintInt
+	.ent	PrintInt
+	
+PrintInt:
+	addiu $2,$0,SC_PrintInt
+	syscall
+	j	$31
+	.end PrintInt
+
+	.globl ReadInt
+	.ent	ReadInt
+ReadInt:
+	addiu $2,$0,SC_ReadInt
+	syscall
+	j	$31
+	.end ReadInt
+
+	.globl ReadString
+	.ent	ReadString
+ReadString:
+	addiu $2,$0,SC_ReadString
+	syscall
+	j	$31
+	.end ReadString
+
+	.globl PrintString
+	.ent	PrintString
+PrintString:
+	addiu $2,$0,SC_PrintString
+	syscall
+	j	$31
+	.end PrintString
+
 //test SC sub
 	.globl Sub
 	.ent Sub

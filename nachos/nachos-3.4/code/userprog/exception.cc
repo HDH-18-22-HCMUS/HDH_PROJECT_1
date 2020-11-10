@@ -53,20 +53,88 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
-void AdvanceProgramCounter(int pcAfter)
+void AdvanceProgramCounter()
 {
     // Advance program counters.
-    machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+    machine->registers[PrevPCReg] = machine->registers[PCReg];
     // for debugging, in case we
     // are jumping into lala-land
-    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-    machine->WriteRegister(NextPCReg, pcAfter);
+    machine->registers[PCReg] = machine->registers[NextPCReg];
+    machine->registers[NextPCReg] += 4;
+}
+
+/*
+Copy buffer from userspace to kernelspace
+
+Arguments:
+int virtualAddress: Userspace address
+int bufferSize: maximum size of buffer
+
+Output:
+buffer
+*/
+char *User2System(int virtualAddress, int bufferSize)
+{
+    int chr;
+    char *kernelBuffer = NULL;
+    kernelBuffer = new char[bufferSize + 1];
+
+    if (kernelBuffer == NULL)
+    {
+        return kernelBuffer;
+    }
+
+    memset(kernelBuffer, 0, bufferSize + 1);
+
+    for (int i = 0; i < bufferSize; i++)
+    {
+        machine->ReadMem(virtualAddress + i, 1, &chr);
+        kernelBuffer[i] = (char)chr;
+        if (chr == 0)
+            break;
+    }
+    return kernelBuffer;
+}
+
+/*
+Copy buffer from kernelspace to userspace
+
+Arguments:
+int virtualAddress: Userspace address
+int bufferSize: maximum size of buffer
+char* buffer: pointer to userspace buffer
+
+Output:
+int counter: number of bytes copied
+*/
+
+int System2User(int virtualAddress, int bufferSize, char *buffer)
+{
+    if (bufferSize < 0)
+    {
+        return -1;
+    }
+    if (bufferSize == 0)
+    {
+        return 0;
+    }
+
+    int counter = 0;
+    int chr = 0;
+
+    do
+    {
+        chr = (int)buffer[counter];
+        machine->WriteMem(virtualAddress + counter, 1, chr);
+        counter++;
+    } while (counter < bufferSize && chr != 0);
+
+    return counter;
 }
 
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    int pcAfter = machine->ReadRegister(NextPCReg) + 4;
     //int type = SC_Sub;
     /*
     Khong goi interrupt->Halt() nua
@@ -75,62 +143,119 @@ void ExceptionHandler(ExceptionType which)
     */
     switch (which)
     {
-    case NoException:
-        return;
     case SyscallException:
         switch (type)
         {
         case SC_Halt:
-            {
+        {
             DEBUG('a', "Shutdown, initiated by user program.\n");
             interrupt->Halt();
             break;
             //test SC_ sub
-            }
-            case SC_Sub:
-            {
-                int op1 = machine->ReadRegister (4);
-                int op2 = machine->ReadRegister (5);
-                int result = op1 - op2;
-                AdvanceProgramCounter(pcAfter);
-                machine->WriteRegister (2, result);
-                //DEBUG('a', "123dfhh.\n");
-                //interrupt->Halt();
-                  
-            }   
-            break;         
-            case SC_ReadChar:
-            {
-                SynchConsole *gSynchConsole = new SynchConsole();
-                int sz=0;
-				char* buf = new char[MAX_LENGTH];
-				sz = gSynchConsole->Read(buf, MAX_LENGTH);
-                AdvanceProgramCounter(pcAfter);
-				machine->WriteRegister(2, buf[0]);
-                delete gSynchConsole;
-                delete[] buf;
-                //interrupt->Halt();
-            }
+        }
+        case SC_Sub:
+        {
+            int op1 = machine->ReadRegister(4);
+            int op2 = machine->ReadRegister(5);
+            int result = op1 - op2;
+            machine->WriteRegister(2, result);
+            //DEBUG('a', "123dfhh.\n");
             break;
-            case SC_PrintChar:
-            {
-                SynchConsole *gSynchConsole=new SynchConsole();
-                char ch = (char) machine->ReadRegister(4);
-				gSynchConsole->Write(&ch, 1);
-                delete gSynchConsole;
-                AdvanceProgramCounter(pcAfter);
-                //interrupt->Halt();
-            }
+        }
+
+        case SC_ReadChar:
+        {
+            int sz = 0;
+            char *buf = new char[MAX_LENGTH];
+            sz = gSynchConsole->Read(buf, MAX_LENGTH);
+            machine->WriteRegister(2, buf[0]);
+            delete[] buf;
             break;
-            default:
+        }
+
+        case SC_PrintChar:
+        {
+            char ch = (char)machine->ReadRegister(4);
+            gSynchConsole->Write(&ch, 1);
+            break;
+        }
+
+        case SC_ReadInt:
+        {
+            int nByte = 10;
+            char *into = new char[nByte];
+
+            int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
+
+            if (len == -1)
             {
-                printf("Unexpected user mode exception %d %d\n", which, type);
-                interrupt->Halt();
+                machine->WriteRegister(2, 0);
+            }
+
+            // Chuyen doi chuoi nhap thanh so.
+            int result = 0; //Bien ket qua.
+            int pow = 1;
+            for (int i = 0; i < len; i++)
+            {
+
+                // Xet ton tai ky khong phai so. Tra ve 0 khi ton tai ky tu khong phai so.
+                if ((into[i] < '0') || (into[i] > '9'))
+                {
+                    machine->WriteRegister(2, 0);
+                }
+
+                result = result + (into[i] - 48) * pow; // Them ky tu vao bien ket qua.
+                pow = pow * 10;
+            }
+            machine->WriteRegister(2, result);
+
+            delete into;
+            break;
+        }
+
+        case SC_PrintString:
+        {
+            int i = 0;
+            char *string = new char[MAX_LENGTH];
+            string = User2System(machine->ReadRegister(4), MAX_LENGTH + 1);
+            while (string[i] != 0 && string[i] != '\n')
+            {
+                gSynchConsole->Write(string + i, 1);
+                i++;
+            }
+
+            gSynchConsole->Write(string + i, 1);
+            delete[] string;
+            break;
+        }
+
+        case SC_ReadString:
+        {
+            char *string = new char[MAX_LENGTH];
+            if (string == 0) // out of save space
+            {
+                delete[] string;
                 break;
             }
 
-        
+            int virtualAddress = machine->ReadRegister(4);
+            int length = machine->ReadRegister(5);
 
+            int bufferSize = gSynchConsole->Read(string, length);
+            System2User(virtualAddress, bufferSize, string);
+            delete[] string;
+            break;
         }
+        default:
+        {
+            printf("Unexpected user mode exception %d %d\n", which, type);
+            interrupt->Halt();
+            break;
+        }
+        }
+        AdvanceProgramCounter();
+        break;
+    case NoException:
+        return;
     }
 }
