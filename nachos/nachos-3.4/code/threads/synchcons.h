@@ -12,7 +12,9 @@ public:
 						// Ends in EOLN or ^A
 	int Write(char *from, int numBytes);	// Write a synchronous line
 private:
-	Console		*cons;			// Pointer to an async console
+	Console	*cons;			// Pointer to an async console
+
+	
 } ;
 
 // CAE - MULTI - END SECTION

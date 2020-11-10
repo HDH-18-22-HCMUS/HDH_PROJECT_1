@@ -35,7 +35,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort sub
+all: halt shell matmult sort sub char
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -71,4 +71,10 @@ sub.o: sub.c
 sub: sub.o start.o
 	$(LD) $(LDFLAGS) start.o sub.o -o sub.coff
 	../bin/coff2noff sub.coff sub
+
+char.o: char.c
+	$(CC) $(CFLAGS) -c char.c
+char: char.o start.o
+	$(LD) $(LDFLAGS) start.o char.o -o char.coff
+	../bin/coff2noff char.coff char
 

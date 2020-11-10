@@ -24,10 +24,10 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
-
+#define MAX_LENGTH 255
 // To not show error
 //#include "synchcons.h"
-SynchConsole *gSynchConsole;
+//SynchConsole *gSynchConsole=new SynchConsole();
 
 #include "machine.h"
 //----------------------------------------------------------------------
@@ -81,41 +81,56 @@ void ExceptionHandler(ExceptionType which)
         switch (type)
         {
         case SC_Halt:
-        {
+            {
             DEBUG('a', "Shutdown, initiated by user program.\n");
             interrupt->Halt();
             break;
-        }
-        //test SC_ sub
-        case SC_Sub:
-        {
-            
-            AdvanceProgramCounter(pcAfter);
+            //test SC_ sub
+            }
+            case SC_Sub:
+            {
+                int op1 = machine->ReadRegister (4);
+                int op2 = machine->ReadRegister (5);
+                int result = op1 - op2;
+                AdvanceProgramCounter(pcAfter);
+                machine->WriteRegister (2, result);
+                //DEBUG('a', "123dfhh.\n");
+                //interrupt->Halt();
+                  
+            }   
+            break;         
+            case SC_ReadChar:
+            {
+                SynchConsole *gSynchConsole = new SynchConsole();
+                int sz=0;
+				char* buf = new char[MAX_LENGTH];
+				sz = gSynchConsole->Read(buf, MAX_LENGTH);
+                AdvanceProgramCounter(pcAfter);
+				machine->WriteRegister(2, buf[0]);
+                delete gSynchConsole;
+                delete[] buf;
+                //interrupt->Halt();
+            }
             break;
-        }
+            case SC_PrintChar:
+            {
+                SynchConsole *gSynchConsole=new SynchConsole();
+                char ch = (char) machine->ReadRegister(4);
+				gSynchConsole->Write(&ch, 1);
+                delete gSynchConsole;
+                AdvanceProgramCounter(pcAfter);
+                //interrupt->Halt();
+            }
+            break;
+            default:
+            {
+                printf("Unexpected user mode exception %d %d\n", which, type);
+                interrupt->Halt();
+                break;
+            }
 
-        case SC_ReadChar:
-        {
-            
-            AdvanceProgramCounter(pcAfter);
-            break;
-        }
+        
 
-        case SC_PrintChar:
-        {
-            
-            AdvanceProgramCounter(pcAfter);
-            break;
-        }
-        case SC_ReadInt:
-        {
-            AdvanceProgramCounter(pcAfter);
-            break;
-        }
-        default:
-            printf("Unexpected user mode exception %d %d\n", which, type);
-            interrupt->Halt();
-            break;
         }
     }
 }
