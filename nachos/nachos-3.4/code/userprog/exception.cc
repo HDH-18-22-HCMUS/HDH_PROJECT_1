@@ -217,32 +217,33 @@ void ExceptionHandler(ExceptionType which)
             delete into;
             break;
         }
-        case SC_WriteInt:
+        case SC_PrintInt:
         {
-             int num = machine->ReadRegister(4);
-             char* str = new char [10]; // Dãy chữ số của num
-             int nByte = 0; // Số chữ số trong num.
-            
-             int p = 10;
-             int r = 0;
-             int q = num;
-            
-            // Chuyển đổi từng chữ số trong num sang kiểu char 
+            int num = machine->ReadRegister(4);
+            char *str = new char[10]; // Dãy chữ số của num
+            int nByte = 0;            // Số chữ số trong num.
+
+            int p = 10;
+            int r = 0;
+            int q = num;
+
+            // Chuyển đổi từng chữ số trong num sang kiểu char
             // Dữ liệu bắt đầu lưu từ str[9] đến str[0] (từ phải sang trái)
             // Dừng vòng lặp khi str đã lưu hết các chữ số của num
-             do {
+            do
+            {
                 nByte++;
                 q = q / p;
                 r = q % p;
                 str[10 - nByte] = r + 48;
                 p *= 10;
-              } while (q / p > 0);
-            
-              gSynchConsole.Write(str + 10 - nByte,nByte);
-              delete[] str;
+            } while (q / p > 0);
+
+            gSynchConsole->Write(str + 10 - nByte, nByte);
+            delete[] str;
+            machine->WriteRegister(2, 0);
+            break;
         }
-              machine->WriteRegister(2,0);
-              break;        
 
         case SC_PrintString:
         {
