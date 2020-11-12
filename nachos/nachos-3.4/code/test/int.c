@@ -2,8 +2,27 @@
 #include "copyright.h"
 int main()
 {
-	char c = ReadChar();
-	//char c= 'e';
-	PrintChar(c);
+	int a;
+    a = ReadInt();
+    PrintInt(a);
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
