@@ -56,11 +56,14 @@
 void AdvanceProgramCounter()
 {
     // Advance program counters.
-    machine->registers[PrevPCReg] = machine->registers[PCReg];
+    machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+    //machine->registers[PrevPCReg] = machine->registers[PCReg];
     // for debugging, in case we
     // are jumping into lala-land
-    machine->registers[PCReg] = machine->registers[NextPCReg];
-    machine->registers[NextPCReg] += 4;
+    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+    //machine->registers[PCReg] = machine->registers[NextPCReg];
+    machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    //machine->registers[NextPCReg] += 4;
 }
 
 /*
@@ -253,7 +256,8 @@ void ExceptionHandler(ExceptionType which)
             break;
         }
         }
-        AdvanceProgramCounter();
+        //AdvanceProgramCounter();
+        interrupt->Halt();
         break;
     case NoException:
         return;

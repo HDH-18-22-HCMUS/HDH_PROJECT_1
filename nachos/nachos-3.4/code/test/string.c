@@ -2,8 +2,8 @@
 #include "copyright.h"
 int main()
 {
-	char str[100];
-	ReadString(str, 10);
+	char str[] = "Hello world.";
+//	ReadString(str, 10);
 	PrintString(str);
 	return 0;
 }
