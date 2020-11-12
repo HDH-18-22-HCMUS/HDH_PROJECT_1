@@ -217,6 +217,7 @@ void ExceptionHandler(ExceptionType which)
             delete into;
             break;
         }
+
         case SC_PrintInt:
         {
             int num = machine->ReadRegister(4);
@@ -237,6 +238,7 @@ void ExceptionHandler(ExceptionType which)
                 r = q % p;
                 str[10 - nByte] = r + 48;
                 p *= 10;
+
             } while (q / p > 0);
 
             gSynchConsole->Write(str + 10 - nByte, nByte);
