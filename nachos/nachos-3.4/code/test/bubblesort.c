@@ -1,4 +1,6 @@
 #include "syscall.h"
+#include "copyright.h"
+
 #define M 100
 
 int main()
