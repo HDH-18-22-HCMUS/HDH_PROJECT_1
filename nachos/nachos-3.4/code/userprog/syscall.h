@@ -142,8 +142,8 @@ char ReadChar();
 void PrintChar(char character);
 
 /* Prototype: Read - Print string */
-void ReadString(char buffet[], int length);
-void PrintString(char buffet[]);
+void ReadString(char buffer[], int length);
+void PrintString(char buffer[]);
 
 int Sub (int a, int b); 
 
