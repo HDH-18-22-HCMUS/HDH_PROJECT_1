@@ -187,63 +187,89 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_ReadInt:
         {
-            int nByte = 10;
-            char *into = new char[nByte];
+            int nByte = 11;
+            char *str = new char[nByte];
 
-            int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
+            int len = gSynchConsole->Read(str, nByte); // do dai ky tu chuoi nhap.
 
-            if (len == -1)
-            {
-                machine->WriteRegister(2, 0);
-            }
+           bool neg = false;
+           bool isNum = true;
+           int result = 0; //Bien ket qua.
+           int check = 0; 
+           int i = 0;
 
-            // Chuyen doi chuoi nhap thanh so.
-            int result = 0; //Bien ket qua.
-            int pow = 1;
-            for (int i = 0; i < len; i++)
-            {
+            // Nhan dien so nguyen am
+           if (str[0] == '-') 
+           {
+               neg = true;
+               i = 1;
+               check = 1;
+           }
 
-                // Xet ton tai ky khong phai so. Tra ve 0 khi ton tai ky tu khong phai so.
-                if ((into[i] < '0') || (into[i] > '9'))
+            //Kiem tra chuoi nhap co phai la so nguyen hay khong
+           for (; check < len; check++) 
+           {
+               if (str[check] < '0' || str[check] > '9') 
+               {
+                   isNum = false;
+                   break;
+               }
+           }
+
+           if (isNum) 
+           {
+               // Chuyen doi chuoi nhap thanh so.
+                int pow = 1;
+                for (; i < len; i++)
                 {
-                    machine->WriteRegister(2, 0);
+                    result = result + (str[i] - '0') * pow; // Them ky tu vao bien ket qua.
+                    pow = pow * 10;
                 }
+           }
 
-                result = result + (into[i] - 48) * pow; // Them ky tu vao bien ket qua.
-                pow = pow * 10;
+            if (neg)
+            {
+                result = - result;
             }
+
             machine->WriteRegister(2, result);
 
-            delete into;
+            delete[] str;
             break;
         }
 
         case SC_PrintInt:
         {
             int num = machine->ReadRegister(4);
-            char *str = new char[10]; // Dãy chữ số của num
+            char *str = new char[11]; // Dãy chữ số của num
+            str [10] = '\n';          // Ky tu xuong hang
             int nByte = 0;            // Số chữ số trong num.
-
-            int p = 10;
-            int r = 0;
-            int q = num;
-
-            // Chuyển đổi từng chữ số trong num sang kiểu char
-            // Dữ liệu bắt đầu lưu từ str[9] đến str[0] (từ phải sang trái)
-            // Dừng vòng lặp khi str đã lưu hết các chữ số của num
-            do
+            
+            //Kiem tra so am
+            if (num < 0) 
             {
+                char neg = '-';
+                gSynchConsole->Write(&neg, 1); // In dau '-'
+                num = - num; // doi num thanh so duong
+            }
+
+            int i = 10; 
+            int p = 10;
+
+            //Gan tung chu so cua num vao str
+            do 
+            {
+                i--;
                 nByte++;
-                q = q / p;
-                r = q % p;
-                str[10 - nByte] = r + 48;
-                p *= 10;
+                str[i] = num % p + '0';
+                num = num / p;
+            }
+            while (num > 0);
 
-            } while (q / p > 0);
-
-            gSynchConsole->Write(str + 10 - nByte, nByte);
+            //In str bat dau tu str[i]
+            gSynchConsole->Write(str + i, nByte + 1);
+            
             delete[] str;
-            machine->WriteRegister(2, 0);
             break;
         }
 
