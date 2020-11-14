@@ -187,32 +187,48 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_ReadInt:
         {
-            int nByte = 10;
+            int nByte = 11;
             char *into = new char[nByte];
+            int check = 0;
+            int i = 0;
+            bool isNum = true;
+            bool neg = false;
 
             int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
            
-            if (len == -1)
+            if (into[0] == '-')
             {
-                machine->WriteRegister(2, 0);
+                neg = true;
+                check = 1;
+                i = 1;
             }
+
+            for (; check < len; check++)
+            {
+                if ((into[check] < '0') || (into[check] > '9'))
+                {
+                    isNum = false;
+                    break;
+                }
+            }
+            
 
             // Chuyen doi chuoi nhap thanh so.
             int result = 0; //Bien ket qua.
             int pow = 1;
-            int i = 0;
-            for (i = len - 1; i > -1 ; i--)
+            int j;
+            if (isNum == true)
             {
-
-                // Xet ton tai ky khong phai so. Tra ve 0 khi ton tai ky tu khong phai so.
-                if ((into[i] < '0') || (into[i] > '9'))
+                for (j = len - 1; j > i - 1; j--)
                 {
-                    machine->WriteRegister(2, 0);
-                    break;
+                    result = result + (into[j] - 48) * pow; // Them ky tu vao bien ket qua.
+                    pow = pow * 10;
                 }
-
-                result = result + (into[i] - 48) * pow; // Them ky tu vao bien ket qua.
-                pow = pow * 10;
+            }
+            
+            if (neg == true)
+            {
+                result = -result;
             }
             
             machine->WriteRegister(2, result);
@@ -224,10 +240,20 @@ void ExceptionHandler(ExceptionType which)
         case SC_PrintInt:
         {
             int num = machine->ReadRegister(4);
-            char *str = new char[10]; // Dãy chữ số của num
+            char *str = new char[11]; // Dãy chữ số của num
             int nByte = 0;            // Số chữ số trong num.
-
+            int i = 0;
+            bool neg = false;
+    
             //int r = 0;
+            if (num < 0)
+            {
+                neg = true;
+                str[i] = '-';
+                gSynchConsole->Write(str + i, 1);
+                num = - num;
+            }
+            
             int q = num;
 
             // Chuyển đổi từng chữ số trong num sang kiểu char
@@ -242,9 +268,15 @@ void ExceptionHandler(ExceptionType which)
 
             int count = nByte;
             nByte = nByte + 1;
-            int i, j, r, temp;
+            int j, r, temp;
 
-            for (i = 0; i < nByte - 1; i++)
+            if (neg == true)
+            {
+                nByte = nByte + 1;
+                i = 1;
+            }
+
+            for (; i < nByte - 1; i++)
             {
                 r = 1;
                 for (j = 0; j < count; j++)
