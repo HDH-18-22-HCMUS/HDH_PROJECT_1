@@ -3,50 +3,74 @@
 
 #define M 100
 
+
 int main()
 {
+    
     int A[M];
-    int n, i, j, temp;
+    int n, i, j, temp, choice;
 
     // nhap n
-    PrintString(" Nhap n: ");
-    ReadInt(n);
+    PrintString("Nhap n: ");
+    n = ReadInt();
 
     // nhap mang
-    PrintString(" Nhap cac phan tu mang A: ");
+    PrintString("Nhap cac phan tu mang A: \n");
     for (i = 0; i < n; i++)
     {
-        ReadInt(A[i]);
+        A[i] = ReadInt();
     }
-
-    // xuat mang
-    PrintString(" Mang A: ");
-    for (i = 0; i < n; i++)
+    PrintString("\n");
+    
+    
+    PrintString("1 - Sap xep tang dan \n");
+    PrintString("2 - Sap xep giam dan \n");
+    PrintString("=> Nhap lua chon: ");
+    choice = ReadInt();
+    
+    if (choice == 1)
     {
-        PrintInt(A[i]);
-        PrintChar(" ");
-    }
-
-    // sap xep mang tang dan
-    for (i = 0; i < n; i++)
-    {
-        for ( j = 0; j < n - i - 0; j++)
-        {
-            if (A[j] > A[j + 1])
+            // sap xep mang tang dan
+            for (i = 0; i < n-1; i++) 
             {
-                temp = A[j];
-                A[j] = A[j + 1];
-                A[j + 1] = temp;
-            }
-        }
+		        for (j = i+1; j < n; j++) 
+                {
+			        if (A[j] < A[i])
+			        {
+			            temp = A[j];
+			            A[j] = A[i];
+			            A[i] = temp;
+			        }
+		        }
+	        }
     }
 
-    // xuat mang sau khi sap xep
-    PrintString(" Mang A (da sap xep): ");
-    for (i = 0; i < n; i++)
+    else if (choice == 2)
     {
-        PrintInt(A[i]);
-        PrintChar(" ");
-    }
+            // sap xep mang giam dan
+            for (i = 0; i < n - 1; i++) 
+            {
+		        for (j = i + 1; j < n; j++) 
+                {
+			        if (A[j] > A[i])
+			        {
+			            temp = A[j];
+			            A[j] = A[i];
+			            A[i] = temp;
+			        }
+		        }
+	        }       
+    } 
+            PrintString("\n");
+            // xuat mang sau khi sap xep
+            PrintString("Mang A (da sap xep): ");
+    
+            for (i = 0; i < n; i++)
+            {
+                PrintInt(A[i]);
+                PrintChar(' ');
+            }
+            PrintString("\n");
 
+    return 0;
 }

@@ -191,7 +191,7 @@ void ExceptionHandler(ExceptionType which)
             char *into = new char[nByte];
 
             int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
-
+           
             if (len == -1)
             {
                 machine->WriteRegister(2, 0);
@@ -200,21 +200,24 @@ void ExceptionHandler(ExceptionType which)
             // Chuyen doi chuoi nhap thanh so.
             int result = 0; //Bien ket qua.
             int pow = 1;
-            for (int i = 0; i < len; i++)
+            int i = 0;
+            for (i = len - 1; i > -1 ; i--)
             {
 
                 // Xet ton tai ky khong phai so. Tra ve 0 khi ton tai ky tu khong phai so.
                 if ((into[i] < '0') || (into[i] > '9'))
                 {
                     machine->WriteRegister(2, 0);
+                    break;
                 }
 
                 result = result + (into[i] - 48) * pow; // Them ky tu vao bien ket qua.
                 pow = pow * 10;
             }
+            
             machine->WriteRegister(2, result);
 
-            delete into;
+            delete[] into;
             break;
         }
 
@@ -224,26 +227,40 @@ void ExceptionHandler(ExceptionType which)
             char *str = new char[10]; // Dãy chữ số của num
             int nByte = 0;            // Số chữ số trong num.
 
-            int p = 10;
-            int r = 0;
+            //int r = 0;
             int q = num;
 
             // Chuyển đổi từng chữ số trong num sang kiểu char
-            // Dữ liệu bắt đầu lưu từ str[9] đến str[0] (từ phải sang trái)
+            // Dữ liệu bắt đầu lưu từ str[0] đến str[9] (từ trái sang phải)
             // Dừng vòng lặp khi str đã lưu hết các chữ số của num
-            do
+           
+            while (q >= 10)
             {
+                q = q / 10;
                 nByte++;
-                q = q / p;
-                r = q % p;
-                str[10 - nByte] = r + 48;
-                p *= 10;
+            }
 
-            } while (q / p > 0);
+            int count = nByte;
+            nByte = nByte + 1;
+            int i, j, r, temp;
 
-            gSynchConsole->Write(str + 10 - nByte, nByte);
+            for (i = 0; i < nByte - 1; i++)
+            {
+                r = 1;
+                for (j = 0; j < count; j++)
+                {
+                    r = r * 10;
+                }
+                temp = num / r;
+                str[i] = temp + 48;
+                gSynchConsole->Write(str + i, 1);
+                num = num - (temp * r);
+                count--;
+            }
+            str[nByte] = num + 48;
+            gSynchConsole->Write(str + nByte, 1);
+
             delete[] str;
-            machine->WriteRegister(2, 0);
             break;
         }
 

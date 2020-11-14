@@ -5,8 +5,9 @@ int main()
     int count;
     for (count = 1; count < 128; count++)
     {
-        //PrintInt(count);
-        PrintString(" - ");
+        PrintInt(count);
+        PrintChar(' ');
         PrintChar((char)count);
+        PrintString("\n");
     }
 }
