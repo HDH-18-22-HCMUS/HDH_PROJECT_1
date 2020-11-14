@@ -11,7 +11,7 @@ int main()
     int n, i, j, temp, choice;
 
     // nhap n
-    PrintString("Nhap n: ");
+    PrintString("Nhap n (n <= 100): ");
     n = ReadInt();
 
     // nhap mang
@@ -25,8 +25,12 @@ int main()
     
     PrintString("1 - Sap xep tang dan \n");
     PrintString("2 - Sap xep giam dan \n");
-    PrintString("=> Nhap lua chon: ");
-    choice = ReadInt();
+
+    do{
+        PrintString("=> Nhap lua chon: ");
+        choice = ReadInt();
+    } while(choice != 1 && choice != 2);
+   
     
     if (choice == 1)
     {
@@ -61,6 +65,9 @@ int main()
 		        }
 	        }       
     } 
+
+    
+    
             PrintString("\n");
             // xuat mang sau khi sap xep
             PrintString("Mang A (da sap xep): ");
