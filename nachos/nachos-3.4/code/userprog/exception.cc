@@ -187,63 +187,112 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_ReadInt:
         {
-            int nByte = 10;
+            int nByte = 11;
             char *into = new char[nByte];
+            int check = 0;
+            int i = 0;
+            bool isNum = true;
+            bool neg = false;
 
             int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
-
-            if (len == -1)
+           
+            if (into[0] == '-')
             {
-                machine->WriteRegister(2, 0);
+                neg = true;
+                check = 1;
+                i = 1;
             }
+
+            for (; check < len; check++)
+            {
+                if ((into[check] < '0') || (into[check] > '9'))
+                {
+                    isNum = false;
+                    break;
+                }
+            }
+            
 
             // Chuyen doi chuoi nhap thanh so.
             int result = 0; //Bien ket qua.
             int pow = 1;
-            for (int i = 0; i < len; i++)
+            int j;
+            if (isNum == true)
             {
-
-                // Xet ton tai ky khong phai so. Tra ve 0 khi ton tai ky tu khong phai so.
-                if ((into[i] < '0') || (into[i] > '9'))
+                for (j = len - 1; j > i - 1; j--)
                 {
-                    machine->WriteRegister(2, 0);
+                    result = result + (into[j] - 48) * pow; // Them ky tu vao bien ket qua.
+                    pow = pow * 10;
                 }
-
-                result = result + (into[i] - 48) * pow; // Them ky tu vao bien ket qua.
-                pow = pow * 10;
             }
+            
+            if (neg == true)
+            {
+                result = -result;
+            }
+            
             machine->WriteRegister(2, result);
 
-            delete into;
+            delete[] into;
             break;
         }
 
         case SC_PrintInt:
         {
             int num = machine->ReadRegister(4);
-            char *str = new char[10]; // Dãy chữ số của num
+            char *str = new char[11]; // Dãy chữ số của num
             int nByte = 0;            // Số chữ số trong num.
-
-            int p = 10;
-            int r = 0;
+            int i = 0;
+            bool neg = false;
+    
+            //int r = 0;
+            if (num < 0)
+            {
+                neg = true;
+                str[i] = '-';
+                gSynchConsole->Write(str + i, 1);
+                num = - num;
+            }
+            
             int q = num;
 
             // Chuyển đổi từng chữ số trong num sang kiểu char
-            // Dữ liệu bắt đầu lưu từ str[9] đến str[0] (từ phải sang trái)
+            // Dữ liệu bắt đầu lưu từ str[0] đến str[9] (từ trái sang phải)
             // Dừng vòng lặp khi str đã lưu hết các chữ số của num
-            do
+           
+            while (q >= 10)
             {
+                q = q / 10;
                 nByte++;
-                q = q / p;
-                r = q % p;
-                str[10 - nByte] = r + 48;
-                p *= 10;
+            }
 
-            } while (q / p > 0);
+            int count = nByte;
+            nByte = nByte + 1;
+            int j, r, temp;
 
-            gSynchConsole->Write(str + 10 - nByte, nByte);
+            if (neg == true)
+            {
+                nByte = nByte + 1;
+                i = 1;
+            }
+
+            for (; i < nByte - 1; i++)
+            {
+                r = 1;
+                for (j = 0; j < count; j++)
+                {
+                    r = r * 10;
+                }
+                temp = num / r;
+                str[i] = temp + 48;
+                gSynchConsole->Write(str + i, 1);
+                num = num - (temp * r);
+                count--;
+            }
+            str[nByte] = num + 48;
+            gSynchConsole->Write(str + nByte, 1);
+
             delete[] str;
-            machine->WriteRegister(2, 0);
             break;
         }
 
