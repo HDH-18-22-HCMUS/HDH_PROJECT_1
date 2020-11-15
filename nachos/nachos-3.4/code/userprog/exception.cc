@@ -188,15 +188,15 @@ void ExceptionHandler(ExceptionType which)
         case SC_ReadInt:
         {
             int nByte = 11;
-            char *into = new char[nByte];
+            char *str = new char[nByte];
             int check = 0;
             int i = 0;
             bool isNum = true;
             bool neg = false;
 
-            int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
-           
-            if (into[0] == '-')
+            int len = gSynchConsole->Read(str, nByte); // do dai ky tu chuoi nhap.
+
+            if (str[0] == '-')
             {
                 neg = true;
                 check = 1;
@@ -205,35 +205,32 @@ void ExceptionHandler(ExceptionType which)
 
             for (; check < len; check++)
             {
-                if ((into[check] < '0') || (into[check] > '9'))
+                if ((str[check] < '0') || (str[check] > '9'))
                 {
                     isNum = false;
                     break;
                 }
             }
-            
 
             // Chuyen doi chuoi nhap thanh so.
             int result = 0; //Bien ket qua.
-            int pow = 1;
             int j;
             if (isNum == true)
             {
-                for (j = len - 1; j > i - 1; j--)
+                for (j = i; j < len ; ++j)
                 {
-                    result = result + (into[j] - 48) * pow; // Them ky tu vao bien ket qua.
-                    pow = pow * 10;
+                    result = result * 10 + (int)(str[j] & 0xF);
                 }
             }
-            
+
             if (neg == true)
             {
                 result = -result;
             }
-            
+
             machine->WriteRegister(2, result);
 
-            delete[] into;
+            delete str;
             break;
         }
 
@@ -242,24 +239,20 @@ void ExceptionHandler(ExceptionType which)
             int num = machine->ReadRegister(4);
             char *str = new char[11]; // Dãy chữ số của num
             int nByte = 0;            // Số chữ số trong num.
-            int i = 0;
-            bool neg = false;
-    
-            //int r = 0;
+            char neg = '-';
+
             if (num < 0)
             {
-                neg = true;
-                str[i] = '-';
-                gSynchConsole->Write(str + i, 1);
-                num = - num;
+                gSynchConsole->Write(&neg, 1);
+                num = -num;
             }
-            
+
             int q = num;
 
             // Chuyển đổi từng chữ số trong num sang kiểu char
-            // Dữ liệu bắt đầu lưu từ str[0] đến str[9] (từ trái sang phải)
+            // Dữ liệu bắt đầu lưu từ str[0] đến str[nByte] (từ trái sang phải)
             // Dừng vòng lặp khi str đã lưu hết các chữ số của num
-           
+
             while (q >= 10)
             {
                 q = q / 10;
@@ -269,12 +262,7 @@ void ExceptionHandler(ExceptionType which)
             int count = nByte;
             nByte = nByte + 1;
             int j, r, temp;
-
-            if (neg == true)
-            {
-                nByte = nByte + 1;
-                i = 1;
-            }
+            int i = 0;
 
             for (; i < nByte - 1; i++)
             {

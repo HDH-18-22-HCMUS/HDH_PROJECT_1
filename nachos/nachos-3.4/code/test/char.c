@@ -2,8 +2,18 @@
 #include "copyright.h"
 int main()
 {
-	char c = ReadChar();
-	//char c= 'e';
-	PrintChar(c);
+	char a[10];
+	int i;
+	for (i = 0; i < 5; i++)
+	{
+		a[i] = ReadChar();
+	}
+
+	for (i = 0; i < 5; i++)
+	{
+		PrintChar(a[i]);
+		PrintChar(' ');
+	}
+
 	return 0;
 }
