@@ -3,10 +3,9 @@
 
 #define M 100
 
-
 int main()
 {
-    
+
     int A[M];
     int n, i, j, temp, choice;
 
@@ -21,63 +20,60 @@ int main()
         A[i] = ReadInt();
     }
     PrintString("\n");
-    
-    
+
     PrintString("1 - Sap xep tang dan \n");
     PrintString("2 - Sap xep giam dan \n");
 
-    do{
+    do
+    {
         PrintString("=> Nhap lua chon: ");
         choice = ReadInt();
-    } while(choice != 1 && choice != 2);
-   
-    
+    } while (choice != 1 && choice != 2);
+
     if (choice == 1)
     {
-            // sap xep mang tang dan
-            for (i = 0; i < n-1; i++) 
+        // sap xep mang tang dan
+        for (i = 0; i < n - 1; i++)
+        {
+            for (j = i + 1; j < n; j++)
             {
-		        for (j = i+1; j < n; j++) 
+                if (A[j] < A[i])
                 {
-			        if (A[j] < A[i])
-			        {
-			            temp = A[j];
-			            A[j] = A[i];
-			            A[i] = temp;
-			        }
-		        }
-	        }
+                    temp = A[j];
+                    A[j] = A[i];
+                    A[i] = temp;
+                }
+            }
+        }
     }
 
     else if (choice == 2)
     {
-            // sap xep mang giam dan
-            for (i = 0; i < n - 1; i++) 
+        // sap xep mang giam dan
+        for (i = 0; i < n - 1; i++)
+        {
+            for (j = i + 1; j < n; j++)
             {
-		        for (j = i + 1; j < n; j++) 
+                if (A[j] > A[i])
                 {
-			        if (A[j] > A[i])
-			        {
-			            temp = A[j];
-			            A[j] = A[i];
-			            A[i] = temp;
-			        }
-		        }
-	        }       
-    } 
-
-    
-    
-            PrintString("\n");
-            // xuat mang sau khi sap xep
-            PrintString("Mang A (da sap xep): ");
-    
-            for (i = 0; i < n; i++)
-            {
-                PrintInt(A[i]);
-                PrintChar(' ');
+                    temp = A[j];
+                    A[j] = A[i];
+                    A[i] = temp;
+                }
             }
-            PrintString("\n");
+        }
+    }
+
+    PrintString("\n");
+    // xuat mang sau khi sap xep
+    PrintString("Mang A (da sap xep): ");
+
+    for (i = 0; i < n; i++)
+    {
+        PrintInt(A[i]);
+        PrintChar(' ');
+    }
+    PrintString("\n");
 
     return 0;
 }
