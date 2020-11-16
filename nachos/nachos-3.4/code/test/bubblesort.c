@@ -9,9 +9,12 @@ int main()
     int A[M];
     int n, i, j, temp, choice;
 
+    do
+    {
+        PrintString("Nhap n (n <= 100): ");
+        n = ReadInt();
+    } while (n<1 || n>100);
     // nhap n
-    PrintString("Nhap n (n <= 100): ");
-    n = ReadInt();
 
     // nhap mang
     PrintString("Nhap cac phan tu mang A: \n");
