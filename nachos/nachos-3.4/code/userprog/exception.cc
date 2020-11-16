@@ -221,7 +221,7 @@ void ExceptionHandler(ExceptionType which)
             {
                 for (j = len - 1; j > i - 1; j--)
                 {
-                    result = result * pow + (into[j] - 48); // Them ky tu vao bien ket qua.
+                    result = result + (into[j] - 48) * pow; // Them ky tu vao bien ket qua.
                     pow = pow * 10;
                 }
             }
