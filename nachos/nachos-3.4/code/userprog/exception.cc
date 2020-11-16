@@ -188,50 +188,110 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_ReadInt:
         {
-            int nByte = 11;
-            char *str = new char[nByte];
-            int check = 0;
-            int i = 0;
-            bool isNum = true;
-            bool neg = false;
+            char ch;
+            int result = 0; // Ket qua tra ve
+            int len = 0;
+            bool isNeg = false; // xac nhan kha nang chuoi la so am
+            bool isNum = true; // xac nhan chuoi la so nguyen
+            bool isOf = false; // xac nhan tinh trang Overflow
 
-            int len = gSynchConsole->Read(str, nByte); // do dai ky tu chuoi nhap.
 
-            if (str[0] == '-')
+            while (true)
             {
-                neg = true;
-                check = 1;
-                i = 1;
-            }
+                gSynchConsole->Read (&ch, 1);
 
-            for (; check < len; check++)
-            {
-                if ((str[check] < '0') || (str[check] > '9'))
+                //Xet ky tu dau
+                if (len == 0)
                 {
-                    isNum = false;
+                    //Truong hop khong xet den
+                    if ((ch == ' ') || (ch == '\0'))
+                    {
+                        continue;
+                    }
+
+                    // Truong hop kha nang nhap so am
+                    if (ch == '-')
+                    {
+                        isNeg = true;
+                        len++;
+                        continue;
+                    }
+
+                    // Truong hop kha nang nhap so duong
+                    if (ch == '+')
+                    {
+                        len++;
+                        continue;
+                    }
+                }
+
+                //Xet truong hop dung vong lap
+                if ((ch == ' ') || (ch == '\0'))
+                {
                     break;
                 }
+
+                if (isNum)
+                {
+                    //Xac nhan ky tu la chu so hay khong
+                    if((ch <'0' ) || (ch > '9'))
+                    {
+                        isNum = false;
+                        result = 0;
+                    }
+                    else
+                    {
+                        if (!isOf)
+                        {
+                            int n = (int)(ch & 0xf); //Chuyen doi chu so thanh so
+                            int temp = result * 10 + n;
+                            // Xet truong hop bat thuong de nhan dinh Overflow
+                            if ((temp <= result) && (result !=0))
+                            {
+                                isOf = true;
+                            }
+                            else
+                            {
+                                result = temp;
+                            }
+                            
+                        }
+                    }
+                    
+                }
+                len++;
             }
 
-            // Chuyen doi chuoi nhap thanh so.
-            int result = 0; //Bien ket qua.
-            int j;
-            if (isNum == true)
+            // Dinh dang lai ket qua tra ve
+            if (isNum)
             {
-                for (j = i; j < len ; ++j)
+                if (isOf)
                 {
-                    result = result * 10 + (int)(str[j] & 0xF);
+                    //printf("Overflow\n"); //Debug Overflow
+                    if (isNeg)
+                    {
+                        result = 0x80000000;// So am nhor nhat co the bieu dien
+                    }
+                    else
+                    {
+                        result = 0x7FFFFFFF; //So nguyen duong lon nhat co the bieu dien.
+                    }
+                }
+                else
+                {
+                    if (isNeg)
+                    {
+                        result = -result;
+                    }
                 }
             }
-
-            if (neg == true)
+            else
             {
-                result = -result;
+                result = 0;
             }
-
+            
             machine->WriteRegister(2, result);
 
-            delete str;
             break;
         }
 
