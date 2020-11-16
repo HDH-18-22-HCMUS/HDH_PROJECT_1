@@ -78,21 +78,17 @@ buffer
 */
 char *User2System(int virtualAddress, int bufferSize)
 {
-    //Create kernel buffer to hold memory contents
     int chr;
     char *kernelBuffer = NULL;
     kernelBuffer = new char[bufferSize + 1];
 
-    //Check if buffer was allocated successfully
     if (kernelBuffer == NULL)
     {
         return kernelBuffer;
     }
 
-    //Clear buffer contents
     memset(kernelBuffer, 0, bufferSize + 1);
 
-    //Copy memory from userspace to kernelspace, one byte at a time
     for (int i = 0; i < bufferSize; i++)
     {
         machine->ReadMem(virtualAddress + i, 1, &chr);
@@ -117,12 +113,10 @@ int counter: number of bytes copied
 
 int System2User(int virtualAddress, int bufferSize, char *buffer)
 {
-    //Check buffer validity
     if (bufferSize < 0)
     {
         return -1;
     }
-    //If buffer is empty
     if (bufferSize == 0)
     {
         return 0;
@@ -131,7 +125,6 @@ int System2User(int virtualAddress, int bufferSize, char *buffer)
     int counter = 0;
     int chr = 0;
 
-    //Copy memory from kernelspace to userspace, one byte at a time
     do
     {
         chr = (int)buffer[counter];
@@ -145,6 +138,12 @@ int System2User(int virtualAddress, int bufferSize, char *buffer)
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
+    //int type = SC_Sub;
+    /*
+    Khong goi interrupt->Halt() nua
+    Thay bang ham AdvanceProgramCounter();
+    Goi ham nay truoc khi return syscall
+    */
     switch (which)
     {
     case SyscallException:
@@ -189,15 +188,15 @@ void ExceptionHandler(ExceptionType which)
         case SC_ReadInt:
         {
             int nByte = 11;
-            char *into = new char[nByte];
+            char *str = new char[nByte];
             int check = 0;
             int i = 0;
             bool isNum = true;
             bool neg = false;
 
-            int len = gSynchConsole->Read(into, nByte); // do dai ky tu chuoi nhap.
+            int len = gSynchConsole->Read(str, nByte); // do dai ky tu chuoi nhap.
 
-            if (into[0] == '-')
+            if (str[0] == '-')
             {
                 neg = true;
                 check = 1;
@@ -206,7 +205,7 @@ void ExceptionHandler(ExceptionType which)
 
             for (; check < len; check++)
             {
-                if ((into[check] < '0') || (into[check] > '9'))
+                if ((str[check] < '0') || (str[check] > '9'))
                 {
                     isNum = false;
                     break;
@@ -215,14 +214,12 @@ void ExceptionHandler(ExceptionType which)
 
             // Chuyen doi chuoi nhap thanh so.
             int result = 0; //Bien ket qua.
-            int pow = 1;
             int j;
             if (isNum == true)
             {
-                for (j = len - 1; j > i - 1; j--)
+                for (j = i; j < len ; ++j)
                 {
-                    result = result + (into[j] - 48) * pow; // Them ky tu vao bien ket qua.
-                    pow = pow * 10;
+                    result = result * 10 + (int)(str[j] & 0xF);
                 }
             }
 
@@ -233,7 +230,7 @@ void ExceptionHandler(ExceptionType which)
 
             machine->WriteRegister(2, result);
 
-            delete[] into;
+            delete str;
             break;
         }
 
@@ -242,22 +239,18 @@ void ExceptionHandler(ExceptionType which)
             int num = machine->ReadRegister(4);
             char *str = new char[11]; // Dãy chữ số của num
             int nByte = 0;            // Số chữ số trong num.
-            int i = 0;
-            bool neg = false;
+            char neg = '-';
 
-            //int r = 0;
             if (num < 0)
             {
-                neg = true;
-                str[i] = '-';
-                gSynchConsole->Write(str + i, 1);
+                gSynchConsole->Write(&neg, 1);
                 num = -num;
             }
 
             int q = num;
 
             // Chuyển đổi từng chữ số trong num sang kiểu char
-            // Dữ liệu bắt đầu lưu từ str[0] đến str[9] (từ trái sang phải)
+            // Dữ liệu bắt đầu lưu từ str[0] đến str[nByte] (từ trái sang phải)
             // Dừng vòng lặp khi str đã lưu hết các chữ số của num
 
             while (q >= 10)
@@ -269,12 +262,7 @@ void ExceptionHandler(ExceptionType which)
             int count = nByte;
             nByte = nByte + 1;
             int j, r, temp;
-
-            if (neg == true)
-            {
-                nByte = nByte + 1;
-                i = 1;
-            }
+            int i = 0;
 
             for (; i < nByte - 1; i++)
             {
@@ -300,30 +288,21 @@ void ExceptionHandler(ExceptionType which)
         {
             int i = 0;
             char *string = new char[MAX_LENGTH];
-
-            //Copy string contents from user memory to kernel memory
             string = User2System(machine->ReadRegister(4), MAX_LENGTH + 1);
-
-            //Print the first to second to last character of the string, one at a time
             while (string[i] != 0 && string[i] != '\n')
             {
                 gSynchConsole->Write(string + i, 1);
                 i++;
             }
-            //Print the last character of the string
-            gSynchConsole->Write(string + i, 1);
 
-            //Free up unused memory
+            gSynchConsole->Write(string + i, 1);
             delete[] string;
             break;
         }
 
         case SC_ReadString:
         {
-            //Create string buffer
             char *string = new char[MAX_LENGTH];
-
-            //Check string buffer validity
             if (string == 0) // out of save space
             {
                 delete[] string;
@@ -333,13 +312,8 @@ void ExceptionHandler(ExceptionType which)
             int virtualAddress = machine->ReadRegister(4);
             int length = machine->ReadRegister(5);
 
-            //Read string from console
             int bufferSize = gSynchConsole->Read(string, length);
-
-            //Copy string contents from kernel memory to user memory
             System2User(virtualAddress, bufferSize, string);
-
-            //Free up memory
             delete[] string;
             break;
         }
@@ -355,58 +329,6 @@ void ExceptionHandler(ExceptionType which)
         break;
     }
     case NoException:
-    {
         return;
-    }
-    case PageFaultException:
-    {
-        DEBUG('a', "No valid translation found.\n");
-        printf("No valid translation found");
-        interrupt->Halt();
-        break;
-    }
-    case ReadOnlyException:
-    {
-        DEBUG('a', "Write attempted to page marked read-only.\n");
-        printf("Write attempted to page marked read-only");
-        interrupt->Halt();
-        break;
-    }
-    case BusErrorException:
-    {
-        DEBUG('a', "Translation resulted in an invalid physical address.\n");
-        printf("Translation resulted in an invalid physical address");
-        interrupt->Halt();
-        break;
-    }
-
-    case AddressErrorException:
-    {
-        DEBUG('a', "Unaligned reference or one that was beyond the end of the address space.\n");
-        printf("Unaligned reference or one that was beyond the end of the address space");
-        interrupt->Halt();
-        break;
-    }
-    case OverflowException:
-    {
-        DEBUG('a', "Integer overflow in add or sub.\n");
-        printf("Integer overflow in add or sub");
-        interrupt->Halt();
-        break;
-    }
-    case IllegalInstrException:
-    {
-        DEBUG('a', "Unimplemented or reserved instr..\n");
-        printf("Unimplemented or reserved instr.");
-        interrupt->Halt();
-        break;
-    }
-    case NumExceptionTypes:
-    {
-        DEBUG('a', "Number exception types.\n");
-        printf("Number exception types");
-        interrupt->Halt();
-        break;
-    }
     }
 }
